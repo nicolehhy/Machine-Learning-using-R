@@ -1,0 +1,136 @@
+---
+title: "Network Analysis"
+author: "Hongyu Huang"
+date: "January 19, 2019"
+output: 
+  html_document:
+    theme: cerulean
+    toc: yes
+---
+
+```{r}
+
+```
+
+# Background
+Network analysis is an important part of data mining. In modern life, through the analysis of network structure, we can make a clear understanding of the connection relationship between network nodes. In the network era, we have access to a large number of media websites. Through network analysis, we can find more important nodes in the relationship network, which is helpful for the Internet business strategy.
+```{r}
+
+```
+
+# Research Question
+When advertising information is put on important media websites, advertisements will get a higher exposure. We want to analyze which major media websites in the United States will make more benefits from advertising. Will the importance of these websites differ? 
+```{r}
+
+```
+
+# Dataset
+The data set used in this project is from Katherine Ognyanova, Rutgers University, 2018. It's collected among 17 media websites. This data contains the relationship of hyperlink and mention between different websites, the audience size of each website and the media type. After using Eigenvector Centrality measurement, it's a 2-mode network: a line between a website and another indicates that the former has hyperlink or mentions another. The line values indicate the importance between them.
+```{r}
+
+```
+
+# Network Figure
+The figures of network show importance and relationships among different media. As shown below, bipartite figure, round layout, clear characteristic graphic and network degree distribution are conducted.
+```{r}
+library(igraph)
+setwd("C:/STONY/Practice/R (No.13)")
+```
+
+```{r}
+media <- read.csv("Media-EDGES1.csv", header=T, as.is=T)
+tnames=names(table(c(names(table(media$from)),names(table(media$to)))))
+from <- as.character(media[,1])
+to <- as.character(media[,2])
+
+library(igraph)
+mnet <- graph.empty()
+mnet <- add.vertices(mnet,length(tnames),
+                     calling=as.character(media[,1]),called=as.character(media[,2]))
+ids <- 1:length(tnames)
+names(ids) <- tnames
+ids
+```
+
+```{r}
+from <- as.character(media[,1])
+to <- as.character(media[,2])
+edges <- matrix(c(ids[from],ids[to]),nc=2)
+mnet <- add.edges(mnet,t(edges))
+mnet <- as.undirected(mnet)
+eig = evcent(mnet)$vector
+```
+
+```{r}
+nodes <- read.csv("Media-NODES.csv", header=T, as.is=T)
+links <- read.csv("Media-EDGES2.csv", header=T, as.is=T)
+net <- graph_from_data_frame(d=links, vertices=nodes, directed=T)
+```
+
+## Figure 1: A sample of what the relationships among the media look like
+```{r}
+plot(net, edge.arrow.size=.2, edge.color="orange",
+     vertex.color="orange", vertex.frame.color="#ffffff",
+     vertex.label=V(net)$media, vertex.label.color="black")
+```
+
+##  Figure 2: A sample of a round layout of media network
+```{r}
+l <- layout_in_circle(net)
+plot(net, layout=l,vertex.label=V(net)$media)
+```
+          
+##  Figure 3: network nodes based on type of media, and size
+```{r}
+# Generate colors based on media type
+colrs <- c("gray50", "tomato", "gold")
+V(net)$color <- colrs[V(net)$media.type]
+deg <- degree(net, mode="all")
+V(net)$size <- deg*3
+# We could also use the audience size value:
+V(net)$size <- V(net)$audience.size*0.6
+
+# Set edge width based on weight:
+E(net)$width <- E(net)$weight
+
+#change arrow size and edge color:
+E(net)$arrow.size <- .2
+E(net)$edge.color <- "gray80"
+
+# We can even set the network layout:
+graph_attr(net, "layout") <- layout_with_lgl
+plot(net,vertex.label=V(net)$media) 
+```
+            
+## Figure 4:  degree distribution of the network
+```{r}
+deg.dist <- degree_distribution(net, cumulative=T, mode="all")
+plot( x=0:max(degree(net)), y=1-deg.dist, pch=19, cex=1.2, col="red", 
+      xlab="Degree", ylab="Cumulative Frequency")
+```
+           
+
+# Method
+Given an undirected and unweighted network(from si to sj in this data set).the relative centrality score of vertex is defined as: $$X_{v} = \frac{1}{\lambda} \sum_{t\subset{M(v)}}x(t) = \frac{1}{\lambda} \sum_{t\subset{G}}a(v,t)x(t)$$Where M(v) is a set of neighbors of v and lamda is a constant with a small rearrangement this can be rewritten in vector notation as the eigenvector equation: $AX = X\lambda$
+```{r}
+
+```
+
+# Discussion
+According to the results above, NY Times, Wall Street Journal, USA Today, New York Post, ABC and AOL.com are more important in the network relationships. This result gives us an idea of which websites should be considered in internet business. For example, the more important the news websites are, the more we should consider putting our advertisements in their websites pages. However, we must know the adjacency matrix of the graph, which is the topological structure of the whole network. If there are 1 million nodes in the network, it is also difficult for us to generate a matrix of 1 million by 1 million. So when it comes to big data set, pagerank may be better to use. 
+```{r}
+
+```
+
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+

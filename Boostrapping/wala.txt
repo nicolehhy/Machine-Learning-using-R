@@ -1,0 +1,21 @@
+#Here is a quick example finding the jackknifed sampling distribution
+#of the mean of a normal data sample
+
+#first get some random data
+n = 100
+x = rnorm(n,10,2)
+hist(x)
+
+
+#blank data vector to store results
+jack_mean = rep(NA,n)
+
+#for each i from 1 to n, leave the ith observation out
+#then calculate the statistic of interest on the remaining observations
+for(i in 1:n){
+? ? temp_x = x[-i]
+? ? jack_mean[i] = mean(temp_x)
+}
+
+#histogram of the jackknifed sampling distribution of mu
+hist(jack_mean)

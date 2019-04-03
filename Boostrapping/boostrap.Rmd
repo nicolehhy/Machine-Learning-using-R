@@ -1,0 +1,111 @@
+---
+title: "boostrap"
+author: ""
+date: "November 14, 2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+## 1.read the data and get the subset
+
+```{r}
+NWF <- read.table("C:/Practice/Practice/R _boostrap(No.2)/norwegianfire.txt", header = T, stringsAsFactors = T)
+str(NWF)
+head(NWF)
+nwf <-subset(NWF,NWF[,2]== 88)
+str(nwf)
+summary(nwf)
+hist(nwf[,1],xlab="range",ylab="num",border="blue", col="green",xlim = c(400,470000),ylim = c(1,20),breaks = 100000)
+```
+
+```{r}
+library(ggplot2)
+```
+
+## 2.boostrap and get the plot of density of 95th quantile
+```{r}
+boot_n = 1000
+n <- dim(nwf)[1]
+boot_median = rep(NA,boot_n)
+boot_95th = rep(NA,boot_n)
+for(i in 1:boot_n){
+  boot = sample(rownames(nwf),size = n,replace = TRUE)
+  aa <- nwf[boot,]
+  #calculate the wanted statistics
+  boot_median[i] = median(aa$X520)
+  boot_95th[i] = quantile(aa$X520,.95)
+}
+plot(density(boot_95th))
+ggplot()+
+  geom_histogram(aes(boot_95th),bins=30)
+```
+## 3. get the bias and MSE 
+```{r}
+theta.b <- quantile(nwf$X520,.95)
+theta.hat <- mean(boot_95th)
+bias <- theta.b - theta.hat
+bias
+
+MSE <- var(boot_95th)+bias^2
+MSE
+```
+## 4. get the CI for boostrapping
+```{r}
+t.test(boot_95th,conf.level = 0.95)$conf.int
+```
+## jackknife
+```{r}
+jack_n = 827
+jack_median = rep(NA,jack_n)
+jack_95th = rep(NA,jack_n)
+for(i in 1:jack_n){
+  temp_x = rownames(nwf)[-i]
+  jack <- nwf[temp_x,]
+  jack_median[i] = median(jack$X520)
+  jack_95th[i] = quantile(jack$X520,.95)
+}
+plot(density(jack_95th))
+ggplot()+
+  geom_histogram(aes(jack_95th),bins=30)
+```
+## get the bias and MSE for jackknife
+```{r}
+theta.b <- quantile(nwf$X520,.95)
+theta.jack <- mean(jack_95th)
+bias1 <- theta.b - theta.jack
+bias1
+MSE1 <- var(boot_95th)+bias^2
+MSE1
+```
+## get the CI for jackknife
+```{r}
+quantile(x = jack_95th,c(.025,.975))
+t.test(jack_95th,conf.level = 0.95)$conf.int
+```
+## get the CI plot 
+```{r}
+require(plotrix)
+par(mfrow=c(1,2))
+n8 <- sapply(boot_95th,length)
+ciw8 <- qt(0.95, n8) * MSE / sqrt(n8)
+plotCI(x=mean(boot_95th), uiw=ciw8, col="black")
+n9 <- sapply(jack_95th,length)
+ciw9 <- qt(0.95, n8) * MSE / sqrt(n9)
+plotCI(x=mean(jack_95th), uiw=ciw9, col="red")
+warning()
+```
+## get the plot for samppling
+```{r}
+par(mfrow=c(1,2))
+hist(boot_95th)
+hist(jack_95th)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -1,0 +1,16 @@
+instruction on how to retrieve historical prices by R package ¡°quantmod¡±.
+
+Use the function getSymbols() in package ¡°quantmod¡± to retrieve two stock historical weekly data from yahoo.finance. The sample period is from ¡°2016-06-30¡± to ¡°2018-06-30¡±. 
+Use the sixth column (adjusted market close price) for each stock data to perform the analysis. 
+
+For example: 
+install.packages("quantmod")
+library(quantmod)
+symbols=c("FB", "BABA")		#Assume we retrieve data of two stocks
+getSymbols(symbols,from="2016-06-30",to="2018-06-30",periodicity="weekly",
+return.class="ts")
+mydat<-cbind(FB[,6], BABA[,6])
+colnames(mydat)<-c("FB","BABA")
+
+#save the data back to your computer
+write.csv(mydat, file="stock_data.csv")

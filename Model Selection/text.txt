@@ -1,0 +1,54 @@
+dat <- read.table('C:/Users/Admin/Desktop/Group_59.csv', header=TRUE, sep=",")
+qqnorm(dat$Y)
+
+install.packages("MASS")
+install.packages("leaps")
+install.packages("knitr")
+library(MASS)
+library(leaps)
+library(knitr)
+M_raw <- lm( Y ~ (E1+E2+E3+E4+E5+G1+G2+G3+G4+G5+G6+G7+G8+G9+G10+G11+G12+G13+G14+G15)^3, data=dat )
+plot(resid(M_raw) ~ fitted(M_raw), main='Residual Plot')
+boxcox(M_raw)
+M_trans <- lm( I(log(Y)) ~ (E1+E2+E3+E4+E5+G1+G2+G3+G4+G5+G6+G7+G8+G9+G10+G11+G12+G13+G14+G15)^3, data=dat )
+summary(M_raw)$adj.r.square
+summary(M_trans)$adj.r.square
+plot(resid(M_trans) ~ fitted(M_trans), main='New Residual Plot')
+
+
+
+da
+install.packages("leaps")
+library(leaps)
+install.packages("kableExtra")
+library(kableExtra)
+M <- regsubsets( model.matrix(M_trans)[,-1], I(log(dat$Y)), 
+                 nbest = 1 , nvmax=5, 
+                 method = 'forward', intercept = TRUE )
+temp <- summary(M)
+
+Var <- colnames(model.matrix(M_trans))
+M_select <- apply(temp$which, 1, 
+                  function(x) paste0(Var[x], collapse='+'))
+kable(data.frame(cbind( model = M_select, adjR2 = temp$adjr2, BIC = temp$bic)),
+      caption='Model Summary')
+
+
+
+
+M_main <- lm( log(Y) ~ ., data=dat)
+temp <- summary(M_main)
+kable(temp$coefficients[ abs(temp$coefficients[,4]) <= 0.001, ], caption='Sig Coefficients')
+
+
+M_2nd <- lm( I(log(Y)) ~ (.)^2, data=dat)
+temp  <- summary(M_2nd)
+kable(temp$coefficients[ abs(temp$coefficients[,4]) <= 0.001, ], caption='2nd Interaction')
+
+M_trans <- lm( I(log(Y)) ~ (E1+E2+E3+E4+E5+G1+G2+G3+G4+G5+G6+G7+G8+G9+G10+G11+G12+G13+G14+G15)^2, data=dat )
+summary(M_trans)
+
+M_2stage <- lm( log(Y) ~ (E3+E5+G8+G3+G13+G15)^3, data=dat)
+temp <- summary(M_2stage)
+temp$coefficients[ abs(temp$coefficients[,3]) >= 4, ]
+summary(M_trans)
